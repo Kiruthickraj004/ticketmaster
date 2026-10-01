@@ -1,12 +1,11 @@
-from rest_framework import generics
+from rest_framework import generics, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from rest_framework import status
 from users.models import User
 from django.shortcuts import get_object_or_404
 from .models import Event, Booking, Seat
-from .permissions import IsOrganizer
+from .permissions import IsOrganizer, IsCustomer
 from .serializers import EventSerializer, BookingSerializer, EventSeatSerializer, OrganizerBookingSerializer
 
 
@@ -33,6 +32,14 @@ class OrganizerEventDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Event.objects.filter(
             organizer=self.request.user
         )
+
+    def perform_destroy(self, instance):
+        if instance.status != Event.Status.DRAFT:
+            raise serializers.ValidationError(
+                "Only draft events can be deleted."
+            )
+
+        instance.delete()
 
 
 class PublicEventListView(generics.ListAPIView):
@@ -63,16 +70,9 @@ class PublicEventDetailView(generics.RetrieveAPIView):
 
 class BookingCreateView(generics.CreateAPIView):
     serializer_class = BookingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCustomer]
 
     def perform_create(self, serializer):
-        if self.request.user.role != User.Role.CUSTOMER:
-            from rest_framework.exceptions import PermissionDenied
-
-            raise PermissionDenied(
-                "Only customers can create bookings."
-            )
-
         serializer.save(
             customer=self.request.user
         )
@@ -103,7 +103,7 @@ class EventSeatListView(generics.ListAPIView):
 
 class CustomerBookingListView(generics.ListAPIView):
     serializer_class = BookingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCustomer]
 
     def get_queryset(self):
         return Booking.objects.filter(
@@ -116,7 +116,7 @@ class CustomerBookingListView(generics.ListAPIView):
 
 class CustomerBookingDetailView(generics.RetrieveAPIView):
     serializer_class = BookingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCustomer]
 
     def get_queryset(self):
         return Booking.objects.filter(
@@ -128,7 +128,7 @@ class CustomerBookingDetailView(generics.RetrieveAPIView):
 
 
 class BookingCancelView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCustomer]
 
     def get_queryset(self):
         return Booking.objects.filter(
