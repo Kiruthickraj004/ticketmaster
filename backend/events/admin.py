@@ -1,32 +1,21 @@
 from django.contrib import admin
 
-from .models import Venue, Seat, Event, Booking
+from .models import Booking, Event, Seat, Venue
 
 
 @admin.register(Venue)
 class VenueAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "city",
-        "capacity",
-    )
-    search_fields = (
-        "name",
-        "city",
-    )
+    list_display = ("name", "city", "capacity")
+    search_fields = ("name", "city")
+    ordering = ("name",)
 
 
 @admin.register(Seat)
 class SeatAdmin(admin.ModelAdmin):
-    list_display = (
-        "venue",
-        "row",
-        "seat_number",
-    )
-    list_filter = (
-        "venue",
-        "row",
-    )
+    list_display = ("venue", "row", "seat_number")
+    list_filter = ("venue", "row")
+    search_fields = ("venue__name", "row")
+    ordering = ("venue", "row", "seat_number")
 
 
 @admin.register(Event)
@@ -36,14 +25,15 @@ class EventAdmin(admin.ModelAdmin):
         "organizer",
         "venue",
         "date",
+        "time",
         "ticket_price",
         "status",
     )
 
     list_filter = (
         "status",
-        "date",
         "venue",
+        "date",
     )
 
     search_fields = (
@@ -51,6 +41,8 @@ class EventAdmin(admin.ModelAdmin):
         "organizer__username",
         "venue__name",
     )
+
+    ordering = ("-date", "-time")
 
 
 @admin.register(Booking)
@@ -73,3 +65,5 @@ class BookingAdmin(admin.ModelAdmin):
         "event__name",
         "seat__row",
     )
+
+    ordering = ("-booked_at",)
