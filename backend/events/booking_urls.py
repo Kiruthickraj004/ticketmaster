@@ -2,22 +2,27 @@ from django.urls import path
 
 from .views import (
     BookingCancelView,
-    BookingCreateView,
+    CustomerBookingListCreateView,
     CustomerBookingDetailView,
-    CustomerBookingListView,
+    BookingAddTicketsView,
 )
 
 
 urlpatterns = [
     path(
         "",
-        BookingCreateView.as_view(),
-        name="booking-create",
+        CustomerBookingListCreateView.as_view(),
+        name="booking-list-create",
     ),
     path(
         "<int:pk>/",
         CustomerBookingDetailView.as_view(),
         name="booking-detail",
+    ),
+    path(
+        "<int:pk>/add-tickets/",
+        BookingAddTicketsView.as_view(),
+        name="booking-add-tickets",
     ),
     path(
         "<int:pk>/cancel/",

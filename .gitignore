@@ -7,9 +7,10 @@ venv/
 # Django
 .env
 
-# React
-frontend/node_modules/
+# React / Node
+node_modules/
 frontend/dist/
+dist/
 
 # IDE
 .vscode/

@@ -1,124 +1,120 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Events from "./pages/Events";
-import EventDetails from "./pages/EventDetails";
+import Buses from "./pages/Buses";
+import BusDetails from "./pages/BusDetails";
 import MyBookings from "./pages/MyBookings";
-import MyEvents from "./pages/MyEvents";
-import CreateEvent from "./pages/CreateEvent";
-import EditEvent from "./pages/EditEvent";
-import OrganizerBookings from "./pages/OrganizerBookings";
-
-import { useAuth } from "./context/AuthContext";
-
-function Home() {
-  const { user } = useAuth();
-
-  return (
-    <div>
-      <h1>Mini Ticketmaster</h1>
-
-      {user ? (
-        <p>Welcome, {user.username}!</p>
-      ) : (
-        <p>
-          Browse and book your favorite events.
-        </p>
-      )}
-    </div>
-  );
-}
+import MyBuses from "./pages/MyBuses";
+import CreateBus from "./pages/CreateBus";
+import EditBus from "./pages/EditBus";
+import OperatorBookings from "./pages/OperatorBookings";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Navbar />
+        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+          <Navbar />
 
-        <Routes>
-          <Route path="/" element={<Home />} />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/login"
-            element={<Login />}
-          />
+              {/* Public Bus Routes */}
+              <Route path="/buses" element={<Buses />} />
+              <Route path="/buses/:id" element={<BusDetails />} />
+              <Route path="/events" element={<Navigate to="/buses" replace />} />
+              <Route path="/events/:id" element={<Navigate to="/buses" replace />} />
 
-          <Route
-            path="/register"
-            element={<Register />}
-          />
+              {/* Customer Routes */}
+              <Route
+                path="/bookings"
+                element={
+                  <ProtectedRoute allowedRoles={["CUSTOMER"]}>
+                    <MyBookings />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/events"
-            element={<Events />}
-          />
+              {/* Bus Operator Routes */}
+              <Route
+                path="/operator/buses"
+                element={
+                  <ProtectedRoute allowedRoles={["OPERATOR"]}>
+                    <MyBuses />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/buses/create"
+                element={
+                  <ProtectedRoute allowedRoles={["OPERATOR"]}>
+                    <CreateBus />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/buses/:id/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["OPERATOR"]}>
+                    <EditBus />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/operator/bookings"
+                element={
+                  <ProtectedRoute allowedRoles={["OPERATOR"]}>
+                    <OperatorBookings />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/events/:id"
-            element={<EventDetails />}
-          />
+              {/* Legacy / Compatibility Aliases */}
+              <Route
+                path="/operator/events"
+                element={<Navigate to="/operator/buses" replace />}
+              />
+              <Route
+                path="/operator/events/create"
+                element={<Navigate to="/operator/buses/create" replace />}
+              />
+              <Route
+                path="/organizer/events"
+                element={<Navigate to="/operator/buses" replace />}
+              />
+              <Route
+                path="/organizer/events/create"
+                element={<Navigate to="/operator/buses/create" replace />}
+              />
+              <Route
+                path="/organizer/bookings"
+                element={<Navigate to="/operator/bookings" replace />}
+              />
 
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute
-                allowedRoles={["CUSTOMER"]}
-              >
-                <MyBookings />
-              </ProtectedRoute>
-            }
-          />
+              {/* 404 Fallback */}
+              <Route
+                path="*"
+                element={
+                  <div className="py-24 text-center space-y-4">
+                    <h1 className="text-4xl font-extrabold text-white">404</h1>
+                    <p className="text-slate-400">Page not found</p>
+                  </div>
+                }
+              />
+            </Routes>
+          </main>
 
-          <Route
-            path="/organizer/events"
-            element={
-              <ProtectedRoute
-                allowedRoles={["ORGANIZER"]}
-              >
-                <MyEvents />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/organizer/events/create"
-            element={
-              <ProtectedRoute
-                allowedRoles={["ORGANIZER"]}
-              >
-                <CreateEvent />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/organizer/events/:id/edit"
-            element={
-              <ProtectedRoute
-                allowedRoles={["ORGANIZER"]}
-              >
-                <EditEvent />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/organizer/bookings"
-            element={
-              <ProtectedRoute
-                allowedRoles={["ORGANIZER"]}
-              >
-                <OrganizerBookings />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+          <Footer />
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );
